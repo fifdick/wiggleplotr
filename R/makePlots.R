@@ -1,16 +1,17 @@
 plotTranscriptStructure <- function(exons_df, limits = NA, connect_exons = TRUE,  
                                     xlabel = "Distance from gene start (bp)", transcript_label = TRUE){
-  
+print(head(exons_df))
+
   #Extract the position for plotting transcript name
   transcript_annot = dplyr::group_by_(exons_df, ~transcript_id) %>% 
     dplyr::filter_(~feature_type == "exon") %>%
     dplyr::arrange_('transcript_id', 'start') %>%
     dplyr::filter(row_number() == 1)
-
+print(head(transcript_annot))
   #Create a plot of transcript structure
   plot = ggplot(exons_df) + geom_blank()
   if(connect_exons){ #Print line connecting exons
-    plot = plot + geom_line(aes_(x = ~start, y = ~transcript_rank, group = ~transcript_rank, color = ~feature_type))
+    plot = plot + geom_line(aes_(x = ~start, y = ~transcript_rank, group = ~transcript_rank), color = "black")#~feature_type))
   }
   plot = plot + 
     geom_rect(aes_(xmin = ~start, 
@@ -19,22 +20,25 @@ plotTranscriptStructure <- function(exons_df, limits = NA, connect_exons = TRUE,
                    ymin = ~transcript_rank - 0.25, 
                    fill = ~feature_type)) + 
     theme_light() +
-    theme(plot.margin=unit(c(0,1,1,1),"line"), 
+    theme(plot.margin=unit(c(2,2,2,2),"line"), 
           axis.title.y = element_blank(),
           axis.text.y = element_blank(),
           axis.ticks.y = element_blank(),
-          legend.position="none",
+          legend.position="bottom",
           panel.grid.major = element_blank(),
           panel.grid.minor = element_blank(),
-          strip.text.y = element_text(colour = "grey10"),
-          strip.background = element_rect(fill = "grey85")) +
+ #         strip.text.y = element_text(colour = "grey10"),
+  #        strip.background = element_rect(fill = "grey85")
+	  ) +
     xlab(xlabel) +
-    facet_grid(type~.) +
+#    facet_grid(type~.) +
     scale_y_continuous(expand = c(0.2,0.15)) +
-    scale_fill_manual(values = c("#2c7bb6","#abd9e9")) + 
-    scale_colour_manual(values = c("#2c7bb6","#abd9e9"))
+    scale_x_continuous(expand = c(0,0.2)) + 
+    scale_fill_manual(values = c("#2c7bb6","#abd9e9")) +
+    #scale_colour_manual(values = c("#2c7bb6","#abd9e9"))
+    guides(color=F)
   if(all(!is.na(limits))){
-    plot = plot + scale_x_continuous(limits = limits, expand = c(0,0))
+    plot = plot + scale_x_continuous(limits = limits, expand = c(0,.15))
   }
   if(transcript_label){
     plot = plot + geom_text(aes_(x = ~start, 
